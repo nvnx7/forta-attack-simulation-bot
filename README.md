@@ -41,7 +41,7 @@ Alerts fired by agent:
 
 ## Test Data
 
-The agent behavior can be verified by running the agent through blocks 14684286 - where tornado funding is detected - and 14684300 - where suspicious contract creation is detected leading the bot to trigger simulation of any possible attack transaction. Simply run:
+The agent behavior can be verified by running the agent through blocks 14684286 - where tornado funding is detected - and 14684300 - where suspicious contract creation is detected leading the bot to trigger simulation of any possible attack transaction. These transactions actually corresponds to the actual Saddle Finance exploit. Simply run:
 
 ```
 npm run range 14684286..14684300
