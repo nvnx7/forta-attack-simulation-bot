@@ -9,7 +9,7 @@ import {
 } from 'forta-agent';
 import LRUCache from 'lru-cache';
 import { TORNADO_ADDRESSES_BY_CHAIN_ID, TORNADO_WITHDRAW_EVENT_ABI } from '../utils/constants';
-import TornadoFundingAgent from './tornadoFunding';
+import tornadoFundingAgent from './tornadoFunding';
 
 const mockAddress = '0x1234567890123456789012345678901234567890';
 const chainId = 1;
@@ -22,7 +22,7 @@ describe.only('tornado cash funding agent', () => {
 
   beforeAll(async () => {
     cache = new LRUCache({ max: 100 });
-    handleTx = TornadoFundingAgent.provideHandleTx(chainId, cache);
+    handleTx = tornadoFundingAgent.provideHandleTx(chainId, cache);
     mockTxEvent = createTransactionEvent({} as any);
   });
 
@@ -62,9 +62,9 @@ describe.only('tornado cash funding agent', () => {
         Finding.fromObject({
           name: 'Tornado Cash Funded Address',
           description: `Tornado Cash funded address ${mockAddress}`,
-          alertId: TornadoFundingAgent.ALERT_ID,
-          severity: FindingSeverity.Medium,
-          type: FindingType.Suspicious,
+          alertId: tornadoFundingAgent.ALERT_ID,
+          severity: FindingSeverity.Low,
+          type: FindingType.Info,
           metadata: {
             suspectedAccount: mockAddress,
           },
