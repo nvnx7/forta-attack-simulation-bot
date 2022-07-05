@@ -1,5 +1,9 @@
 # Attack Simulation Agent
 
+## ⚠️ NOTE ⚠️
+
+I highly recommend putting your own Alchemy/Infura rpc url (`jsonRpcUrl`) in `forta.config.json`. Default rpc url is not fast.
+
 ## Description
 
 This agent simulates an attack before it happens and raises alerts if the attack is detected.
