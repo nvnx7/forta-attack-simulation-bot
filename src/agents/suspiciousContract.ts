@@ -3,6 +3,7 @@ import {
   Finding,
   FindingSeverity,
   FindingType,
+  getTransactionReceipt,
   HandleTransaction,
   TransactionEvent,
 } from 'forta-agent';
@@ -15,18 +16,22 @@ const provideHandleTx = (suspectsCache: LRUCache<string, undefined>): HandleTran
 
     const sender = txEvent.from.toLowerCase();
     const isSenderSuspected = suspectsCache.has(sender);
+
     if (!isSenderSuspected) {
       return findings;
     }
 
-    // detect contract creation
+    // Detect contract creation
     const isContractCreation = !txEvent.to;
     if (!isContractCreation) {
       return findings;
     }
 
-    // Suspicious contract creation
-    const suspiciousContract = txEvent.contractAddress as string;
+    // Fetch created contract and report back
+    const suspiciousContract = (await getTransactionReceipt(txEvent.hash).then(
+      (tx) => tx.contractAddress,
+    )) as string;
+
     findings.push(
       Finding.fromObject({
         name: 'Suspicious Contract Creation',

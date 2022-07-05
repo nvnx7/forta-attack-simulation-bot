@@ -32,8 +32,8 @@ const provideHandleTx = (
           name: 'Tornado Cash Funded Address',
           description: `Tornado Cash funded address ${suspect}`,
           alertId: ALERT_ID,
-          severity: FindingSeverity.Medium,
-          type: FindingType.Suspicious,
+          severity: FindingSeverity.Low,
+          type: FindingType.Info,
           metadata: {
             suspectedAccount: suspect,
           },
