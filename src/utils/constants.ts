@@ -61,26 +61,3 @@ export const TORNADO_WITHDRAW_EVENT_ABI =
   'event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee)';
 
 export const TOKEN_BALANCE_ABI = 'function balanceOf(address) view returns (uint256)';
-
-export const ETH_DELTA_THRESHOLD = 100; // ETH
-export const TOKEN_ADDRESSES_TO_CHECK = [
-  {
-    address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', // WETH
-    alertDeltaThreshold: 100, // 100 WETH
-  },
-];
-
-export const TOKEN_ABI = [
-  {
-    constant: true,
-    inputs: [{ name: 'who', type: 'address' }],
-    name: 'balanceOf',
-    outputs: [{ name: '', type: 'uint256' }],
-    payable: false,
-    stateMutability: 'view',
-    type: 'function',
-  },
-];
-
-// export const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
-// export const WETH_CHANGE_ALERT_THRESHOLD = 100;
