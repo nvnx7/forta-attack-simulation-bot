@@ -28,6 +28,7 @@ const provideHandleTx = (
       return findings;
     }
 
+    // Extract the attacker and attacker contract addresses
     const attacker = txEvent.from.toLowerCase();
     const attackerContract = await getTxReceipt(txEvent.hash)
       .then((tx) => tx.contractAddress)
@@ -40,6 +41,8 @@ const provideHandleTx = (
       return findings;
     }
 
+    // Create a fork at this transaction's block number and proceed
+    // with any attack simulation
     const blockNumber = txEvent.block.number;
     const provider = getEthersForkProvider(blockNumber, [attacker]);
 
@@ -55,12 +58,13 @@ const provideHandleTx = (
       return findings;
     }
 
-    const signer = provider.getSigner(attacker);
+    // Get Signer corresponding to the attacker to be used for sending attack tx
+    const attackSigner = provider.getSigner(attacker);
+
+    // Initialize MultiCall provider
     const multiCallProvider = getMultiCallProvider(provider, chainId);
 
-    // Collect all balance call objects in a single batch call
-    // const attackerBalCalls: any = [multiCallProvider.getEthBalance(attacker)];
-    // const attackerContractBalCalls: any = [multiCallProvider.getEthBalance(attackerContract)];
+    // Collect all balance call objects to use for a single batch call
     const attackerBalCalls: any = [];
     const attackerContractBalCalls: any = [];
     tokenDataToCheck.forEach((tok) => {
@@ -89,7 +93,7 @@ const provideHandleTx = (
     );
     for (const selector of functionsSelectors) {
       try {
-        await signer.sendTransaction({
+        await attackSigner.sendTransaction({
           to: attackerContract,
           data: `0x${selector}`,
         });

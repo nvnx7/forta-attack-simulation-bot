@@ -17,9 +17,9 @@ const provideHandleTx = (
   return async function handleTx(txEvent: TransactionEvent) {
     const findings: Finding[] = [];
 
+    // Determine if the tx sender has been flagged as tornado cash funded
     const sender = txEvent.from.toLowerCase();
     const isSenderSuspected = suspectsCache.has(sender);
-
     if (!isSenderSuspected) {
       return findings;
     }

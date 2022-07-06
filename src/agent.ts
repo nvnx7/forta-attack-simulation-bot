@@ -6,8 +6,8 @@ import attackSimulationAgent from './agents/attackSimulation';
 import { getEthersForkProvider, getMultiCallProvider } from './utils/blockchain';
 import { tokenDataToCheckInSimulation, tornadoFundedAccountsCacheLimit } from './settings';
 
+let chainId: number = 1;
 // Cache of suspicious addresses
-const chainId = 1;
 let cache: LRUCache<string, undefined> = new LRUCache({ max: tornadoFundedAccountsCacheLimit });
 
 const provideHandleTx = (
@@ -32,7 +32,6 @@ const provideHandleTx = (
 };
 
 export default {
-  // initialize,
   provideHandleTx,
   handleTransaction: provideHandleTx(
     tornadoFundingAgent.provideHandleTx(chainId, cache),

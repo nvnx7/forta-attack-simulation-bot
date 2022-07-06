@@ -19,6 +19,9 @@ export const getEthersForkProvider: GetEthersForkProvider = (blockNumber, unlock
   );
 };
 
+/**
+ * Return the multi-call provider instance
+ */
 export type GetMultiCallProvider = (
   provider: ethers.providers.Web3Provider,
   chainId: number,
