@@ -8,6 +8,11 @@ I highly recommend putting your own Alchemy/Infura rpc url (`jsonRpcUrl`) in `fo
 
 This agent simulates an attack before it happens and raises alerts if the attack is detected.
 
+Following setting variables are available to customize in `./settings.ts`:
+
+- `tornadoFundedAccountsCacheLimit`: Max number of cached tornado funded accounts that can be stored in the cache for later reference.
+- `tokenDataToCheckInSimulation`: List of token (native ETH/ERC20/ERC721/ERC1155) addresses with a corresponding threshold which the attack simulation bot will check for balance changes and notify if the balance change/transfer is greater than or equal to the threshold.
+
 ## Supported Chains
 
 - Ethereum
