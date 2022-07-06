@@ -1,56 +1,48 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-  getEthersProvider,
-} from 'forta-agent';
+import { Finding, HandleTransaction, TransactionEvent, getTransactionReceipt } from 'forta-agent';
 import LRUCache from 'lru-cache';
 import tornadoFundingAgent from './agents/tornadoFunding';
 import suspiciousContractCreationAgent from './agents/suspiciousContract';
 import attackSimulationAgent from './agents/attackSimulation';
-import { TORNADO_FUNDED_ACCOUNT_CACHE_SIZE_LIMIT } from './utils/constants';
-import { getEthersForkProvider } from './utils/blockchain';
+import { getEthersForkProvider, getMultiCallProvider } from './utils/blockchain';
+import { tokenDataToCheckInSimulation, tornadoFundedAccountsCacheLimit } from './settings';
 
 // Cache of suspicious addresses
-let cache: LRUCache<string, undefined>;
+const chainId = 1;
+let cache: LRUCache<string, undefined> = new LRUCache({ max: tornadoFundedAccountsCacheLimit });
 
-let tornadoFundingHandleTx: HandleTransaction;
-let suspiciousContractHandleTx: HandleTransaction;
-let attackSimulationHandleTx: HandleTransaction;
+const provideHandleTx = (
+  tornadoFundingHandleTx: HandleTransaction,
+  suspiciousContractHandleTx: HandleTransaction,
+  attackSimulationHandleTx: HandleTransaction,
+): HandleTransaction => {
+  return async function handleTx(txEvent: TransactionEvent) {
+    const findings: Finding[] = [];
 
-const initialize = async () => {
-  const { chainId } = await getEthersProvider().getNetwork();
-  cache = new LRUCache({ max: TORNADO_FUNDED_ACCOUNT_CACHE_SIZE_LIMIT });
-  tornadoFundingHandleTx = tornadoFundingAgent.provideHandleTx(chainId, cache);
-  suspiciousContractHandleTx = suspiciousContractCreationAgent.provideHandleTx(cache);
-  attackSimulationHandleTx = attackSimulationAgent.provideHandleTx(chainId, getEthersForkProvider);
-};
+    const tornadoFindings = await tornadoFundingHandleTx(txEvent);
+    findings.push(...tornadoFindings);
+    const suspiciousContractFindings = await suspiciousContractHandleTx(txEvent);
+    findings.push(...suspiciousContractFindings);
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
-  const findings: Finding[] = [];
-
-  // console.log({ txEvent });
-
-  // check for flash-loan involvement (use lib?)
-  // detect if created contract is trying to interact with target?
-  const tornadoFindings = await tornadoFundingHandleTx(txEvent);
-  findings.push(...tornadoFindings);
-  const suspiciousContractFindings = await suspiciousContractHandleTx(txEvent);
-  findings.push(...suspiciousContractFindings);
-
-  if (suspiciousContractFindings.length > 0) {
-    const simulationFindings = await attackSimulationHandleTx(txEvent);
-    findings.push(...simulationFindings);
-  }
-
-  return findings;
+    if (suspiciousContractFindings.length > 0) {
+      const simulationFindings = await attackSimulationHandleTx(txEvent);
+      findings.push(...simulationFindings);
+    }
+    return findings;
+  };
 };
 
 export default {
-  initialize,
-  handleTransaction,
+  // initialize,
+  provideHandleTx,
+  handleTransaction: provideHandleTx(
+    tornadoFundingAgent.provideHandleTx(chainId, cache),
+    suspiciousContractCreationAgent.provideHandleTx(cache, getTransactionReceipt),
+    attackSimulationAgent.provideHandleTx(
+      chainId,
+      getEthersForkProvider,
+      getTransactionReceipt,
+      getMultiCallProvider,
+      tokenDataToCheckInSimulation,
+    ),
+  ),
 };

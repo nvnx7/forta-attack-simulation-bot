@@ -1,59 +1,45 @@
-import {
-  FindingType,
-  FindingSeverity,
-  Finding,
-  HandleTransaction,
-  createTransactionEvent,
-  ethers,
-} from 'forta-agent';
+import { FindingType, FindingSeverity, Finding } from 'forta-agent';
 import agent from './agent';
-import { TORNADO_ADDRESSES_BY_CHAIN_ID } from './utils/constants';
 
-// Saddle Finance exploit blocks
-const tornadoFundBlock = 14684286;
-const contractCreationBlock = 14684300;
-const attackBlock = 14684307;
-const chainId = 1;
-const tornadoCashAddresses = TORNADO_ADDRESSES_BY_CHAIN_ID[chainId];
-
-const mockAttacker = '0x63341Ba917De90498F3903B199Df5699b4a55AC0';
-const mockAttackerContract = '0x7336F819775B1D31Ea472681D70cE7A903482191';
-
-const mockTornadoFundTx = createTransactionEvent({} as any);
-mockTornadoFundTx.filterLog = jest.fn().mockReturnValue([
-  {
-    args: {
-      from: tornadoCashAddresses[0],
-      to: mockAttacker,
-      value: ethers.utils.parseEther('10'),
-    },
-  },
-]);
-const mockSuspiciousContractCreationTx = createTransactionEvent({
-  transaction: {
-    from: mockAttacker,
-    to: null,
-  },
-  contractAddress: mockAttackerContract,
-} as any);
-// console.log({ mockSuspiciousContractCreationTx });
+const mockNoFindingHandleTx = jest.fn().mockResolvedValue([]);
+const mockFinding = Finding.fromObject({
+  alertId: 'dummy-alert-id',
+  name: 'Dummy',
+  description: 'Dummy description',
+  severity: FindingSeverity.High,
+  type: FindingType.Exploit,
+});
 
 describe('Agent', () => {
-  let handleTx: HandleTransaction;
-  // const mockTxEvent = createTransactionEvent({} as any);
-
-  beforeAll(() => {
-    handleTx = agent.handleTransaction;
-  });
-
   describe('handleTransaction', () => {
-    it('works', async () => {
-      await agent.initialize();
-      const tornadoFindings = await handleTx(mockTornadoFundTx);
-      console.log({ mockSuspiciousContractCreationTx });
+    it('returns empty finding if no suspicious contract was found', async () => {
+      const mockAttackSimHandleTx = jest.fn();
+      const handleTx = agent.provideHandleTx(
+        mockNoFindingHandleTx,
+        mockNoFindingHandleTx,
+        mockAttackSimHandleTx,
+      );
 
-      const suspiciousContractFindings = await handleTx(mockSuspiciousContractCreationTx);
-      console.log({ suspiciousContractFindings, tornadoFindings });
+      const findings = await handleTx({} as any);
+      expect(findings).toStrictEqual([]);
+      expect(mockNoFindingHandleTx).toHaveBeenCalledTimes(2);
+      expect(mockAttackSimHandleTx).toHaveBeenCalledTimes(0);
+    });
+
+    it('runs the simulation if non-empty suspicious contract finding is detected and returns any attack findings', async () => {
+      const mockAttackSimHandleTx = jest.fn().mockResolvedValue([mockFinding]);
+      const handleTx = agent.provideHandleTx(
+        mockNoFindingHandleTx,
+        jest.fn().mockResolvedValue([mockFinding]),
+        mockAttackSimHandleTx,
+      );
+
+      const findings = await handleTx({} as any);
+
+      // One finding is for suspicious contract creation detection
+      // One finding is for simulation that was triggered by that suspicious contract creation
+      expect(findings).toHaveLength(2);
+      expect(findings).toStrictEqual([mockFinding, mockFinding]);
     });
   });
 });
