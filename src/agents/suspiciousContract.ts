@@ -3,14 +3,17 @@ import {
   Finding,
   FindingSeverity,
   FindingType,
-  getTransactionReceipt,
   HandleTransaction,
+  Receipt,
   TransactionEvent,
 } from 'forta-agent';
 
 const ALERT_ID = 'SUSPICIOUS_CONTRACT_CREATION';
 
-const provideHandleTx = (suspectsCache: LRUCache<string, undefined>): HandleTransaction => {
+const provideHandleTx = (
+  suspectsCache: LRUCache<string, undefined>,
+  getTxReceipt: (txHash: string) => Promise<Receipt>,
+): HandleTransaction => {
   return async function handleTx(txEvent: TransactionEvent) {
     const findings: Finding[] = [];
 
@@ -28,7 +31,7 @@ const provideHandleTx = (suspectsCache: LRUCache<string, undefined>): HandleTran
     }
 
     // Fetch created contract and report back
-    const suspiciousContract = (await getTransactionReceipt(txEvent.hash).then(
+    const suspiciousContract = (await getTxReceipt(txEvent.hash).then(
       (tx) => tx.contractAddress,
     )) as string;
 
