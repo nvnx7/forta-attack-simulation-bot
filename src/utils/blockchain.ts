@@ -1,4 +1,5 @@
 import { ethers, getJsonRpcUrl } from 'forta-agent';
+import { Provider as MultiCallProvider } from 'ethers-multicall';
 import Ganache from 'ganache';
 
 /**
@@ -16,6 +17,17 @@ export const getEthersForkProvider: GetEthersForkProvider = (blockNumber, unlock
       logging: { quiet: true },
     }) as any,
   );
+};
+
+export type GetMultiCallProvider = (
+  provider: ethers.providers.Web3Provider,
+  chainId: number,
+) => MultiCallProvider;
+export const getMultiCallProvider: GetMultiCallProvider = (
+  provider,
+  chainId,
+): MultiCallProvider => {
+  return new MultiCallProvider(provider, chainId);
 };
 
 /**
