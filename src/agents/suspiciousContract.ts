@@ -31,9 +31,15 @@ const provideHandleTx = (
     }
 
     // Fetch created contract and report back
-    const suspiciousContract = (await getTxReceipt(txEvent.hash).then(
-      (tx) => tx.contractAddress,
-    )) as string;
+    let suspiciousContract: string;
+    try {
+      suspiciousContract = (await getTxReceipt(txEvent.hash).then(
+        (tx) => tx.contractAddress,
+      )) as string;
+    } catch (error) {
+      console.error(`Error fetching ttx receipt for ${txEvent.hash}`);
+      return findings;
+    }
 
     findings.push(
       Finding.fromObject({
