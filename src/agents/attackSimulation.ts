@@ -10,7 +10,11 @@ import {
 import { Contract } from 'ethers-multicall';
 
 import { TOKEN_BALANCE_ABI } from '../utils/constants';
-import { analyzeBytecode, GetEthersForkProvider, GetMultiCallProvider } from '../utils/blockchain';
+import {
+  retrieveRandomCalldatasForContract,
+  GetEthersForkProvider,
+  GetMultiCallProvider,
+} from '../utils/blockchain';
 
 const ALERT_ID = 'MALICIOUS_TRANSACTION_SIMULATION';
 
@@ -52,9 +56,10 @@ const provideHandleTx = (
       return findings;
     }
 
-    // Extract functions selectors from bytecode
-    const functionsSelectors = analyzeBytecode(bytecode);
-    if (functionsSelectors.length === 0) {
+    // Analyze bytecode to retrieve random calldatas (with valid function selectors)
+    // for the purpose of fuzzing the malicious contract
+    const fuzzCalldatas = retrieveRandomCalldatasForContract(bytecode, 3);
+    if (fuzzCalldatas.length === 0) {
       return findings;
     }
 
@@ -91,11 +96,11 @@ const provideHandleTx = (
     const deltaThresholds = tokenDataToCheck.map((tok) =>
       ethers.utils.parseEther(tok.alertDeltaThreshold),
     );
-    for (const selector of functionsSelectors) {
+    for (const calldata of fuzzCalldatas) {
       try {
         await attackSigner.sendTransaction({
           to: attackerContract,
-          data: `0x${selector}`,
+          data: `${calldata}`,
         });
       } catch (error) {
         // ignore errors/reverts
