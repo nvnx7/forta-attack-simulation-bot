@@ -6,7 +6,7 @@ I highly recommend putting your own Alchemy/Infura rpc url (`jsonRpcUrl`) in `fo
 
 ## Description
 
-This agent simulates an attack before it happens and raises alerts if the attack is detected.
+The agent detects for any suspicious contract creation and if detected, it tries to run a simulation of the attack. It pulls the bytecode of created contract, extracts any possible function selector. Then, it fuzzes calls to contract with random calldatas (having valid function selector). If any large amount of configured token balance is moved, a critical alert is sent.
 
 Following setting variables are available to customize in `./settings.ts`:
 
