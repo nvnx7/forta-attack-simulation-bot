@@ -44,9 +44,10 @@ export const getMultiCallProvider: GetMultiCallProvider = (
  * And then appends random calldata to the end of the function selectors
  * for the purpose of fuzzing
  */
-export const retrieveRandomCalldatasForContract = (
+export const fuzzCalldatasForContract = (
   bytecode: string,
   num32ByteChunks: number = 3,
+  rounds: number = 1, // no. of rounds to fuzz the calldata
 ): string[] => {
   const funcSelectorPat = /8063([0-9a-fA-F]){8}1461([0-9a-fA-F]){4}57/gi;
   const matches = bytecode.match(funcSelectorPat);
@@ -54,8 +55,7 @@ export const retrieveRandomCalldatasForContract = (
   // Extract plain function selectors
   const funcSelectors = matches?.map((match) => '0x' + match.slice(4, 12)) || [];
 
-  if (num32ByteChunks > 1) {
-    // Extract functions selectors from matched bytecode
+  if (funcSelectors.length === 0 || num32ByteChunks <= 0) {
     return funcSelectors;
   }
 
@@ -64,12 +64,15 @@ export const retrieveRandomCalldatasForContract = (
   // that expect any less-sized calldata. Any extra calldata should be simply
   // ignored by contract execution logic.
   const calldatas = [];
-  for (const selector of funcSelectors) {
-    let cd = selector;
-    for (let i = 0; i < num32ByteChunks; i++) {
-      cd += genRandomBytes(32);
+
+  for (let j = 0; j < rounds; j++) {
+    for (const selector of funcSelectors) {
+      let cd = selector;
+      for (let i = 0; i < num32ByteChunks; i++) {
+        cd += genRandomBytes(32);
+      }
+      calldatas.push(cd);
     }
-    calldatas.push(cd);
   }
 
   return calldatas;
