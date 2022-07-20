@@ -1,5 +1,7 @@
 # Attack Simulation Agent
 
+### 🥇 First prize winner in [Forta Bot Development Contest](https://docs.forta.network/en/latest/contest7-forta/https://docs.forta.network/en/latest/contest7-forta/)!
+
 ## ⚠️ NOTE ⚠️
 
 I highly recommend putting your own Alchemy/Infura rpc url (`jsonRpcUrl`) in `forta.config.json`. Default rpc url is not fast.
